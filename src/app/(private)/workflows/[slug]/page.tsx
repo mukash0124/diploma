@@ -1,0 +1,464 @@
+"use client";
+
+import React, { useRef, useCallback } from "react";
+
+import {
+  ReactFlow,
+  ReactFlowProvider,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  Controls,
+  useReactFlow,
+  Background,
+  getIncomers,
+  getOutgoers,
+  ReactFlowInstance,
+} from "@xyflow/react";
+
+import { useRouter } from "next/navigation";
+
+import "@xyflow/react/dist/style.css";
+
+import { Button } from "@/components/ui/button";
+
+import { AppSidebar } from "@/app/lib/components/app-sidebar";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+
+import { v4 as uuidv4 } from "uuid";
+
+import { getUser } from "@/app/lib/dal";
+
+import "./style.css";
+
+import NodeGroup from "@/app/lib/components/node-group";
+import { DnDProvider, useDnD } from "@/app/lib/dnd-context";
+import RowFilter from "@/app/lib/components/nodes/row-filter";
+import CSVReader from "@/app/lib/components/nodes/csv-reader";
+import CSVWriter from "@/app/lib/components/nodes/csv-writer";
+import ColumnFilter from "@/app/lib/components/nodes/column-filter";
+import GetRequest from "@/app/lib/components/nodes/get-request";
+import DBConnector from "@/app/lib/components/nodes/db-connector";
+import DuplicateRemover from "@/app/lib/components/nodes/duplicate-remover";
+
+import { getSession } from "@/app/lib/session";
+import { cache } from "react";
+import { toast } from "sonner";
+import PostRequest from "@/app/lib/components/nodes/post-request";
+import ColumnRenamer from "@/app/lib/components/nodes/column-renamer";
+import DBReader from "@/app/lib/components/nodes/db-reader";
+import DBTableList from "@/app/lib/components/nodes/db-table-list";
+
+const proOptions = { hideAttribution: true };
+
+const nodeTypes = {
+  get_request: GetRequest,
+  column_filter: ColumnFilter,
+  row_filter: RowFilter,
+  csv_reader: CSVReader,
+  csv_writer: CSVWriter,
+  db_connector: DBConnector,
+  db_reader: DBReader,
+  duplicate_remover: DuplicateRemover,
+  post_request: PostRequest,
+  column_renamer: ColumnRenamer,
+  db_table_list: DBTableList,
+};
+
+const getWorkflow: (id: string | string[] | undefined) => Promise<
+  | {
+      id: string;
+      title: string;
+      structure: object;
+      ownerId: string;
+      createdAt: string;
+      updatedAt: string | null;
+    }
+  | null
+  | undefined
+> = cache(async (id) => {
+  if (!id) {
+    toast("Error!", {
+      description: "Invalid workflow ID.",
+    });
+    return null;
+  }
+  const session = await getSession();
+
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/workflows/single/${id}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "*/*",
+          Authorization: `Bearer ${session}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      toast("Error!", {
+        description: "Failed to fetch workflow, error: " + response.statusText,
+      });
+      return null;
+    }
+
+    return response.json();
+  } catch (error) {
+    toast("Error!", {
+      description: `Failed to fetch workflow, error: ${error}`,
+    });
+    return null;
+  }
+});
+
+let reactFlow: ReactFlowInstance;
+
+const getId = () => uuidv4();
+
+const DnDFlow = ({ id }: { id: string | undefined }) => {
+  const reactFlowWrapper = useRef(null);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  reactFlow = useReactFlow();
+
+  React.useEffect(() => {
+    if (id) {
+      getWorkflow(id).then((data) => {
+        setNodes(data?.structure.nodes || []);
+        setEdges(data?.structure.edges || []);
+      });
+    }
+  }, [id, setEdges, setNodes]);
+
+  const { screenToFlowPosition } = useReactFlow();
+  const [type] = useDnD();
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+
+      if (!type) {
+        return;
+      }
+
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const newNode = {
+        id: getId(),
+        data: {},
+        type,
+        position,
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [setNodes, screenToFlowPosition, type]
+  );
+
+  const onDragStart = (event, nodeType) => {
+    setType(nodeType);
+    event.dataTransfer.setData("text/plain", nodeType);
+    event.dataTransfer.effectAllowed = "move";
+  };
+
+  return (
+    <div className="dndflow">
+      <NodeGroup />
+      <div
+        className="reactflow-wrapper mt-1 border-2 rounded-md"
+        ref={reactFlowWrapper}
+        style={{ height: "100vh" }}
+      >
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onDrop={onDrop}
+          onDragStart={(event) => onDragStart(event, "input")}
+          onDragOver={onDragOver}
+          proOptions={proOptions}
+          fitView
+        >
+          <Controls />
+          <Background />
+        </ReactFlow>
+      </div>
+    </div>
+  );
+};
+
+export default function WorkflowPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const [slug, setSlug] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    params.then((resolvedParams) => {
+      setSlug(resolvedParams.slug);
+    });
+  }, [params]);
+
+  const [title, setTitle] = React.useState<string | undefined>("");
+
+  React.useEffect(() => {
+    if (slug) {
+      getWorkflow(slug).then((data) => {
+        setTitle(data?.title);
+      });
+    }
+  }, [slug]);
+
+  const router = useRouter();
+
+  async function addWorkflow(title: string) {
+    const session = await getSession();
+    if (!session) {
+      return;
+    }
+
+    const user = await getUser();
+    if (!user) {
+      return;
+    }
+
+    const workflow = {
+      title: title,
+      ownerId: user.userId,
+      structure: {
+        nodes: [],
+        edges: [],
+      },
+    };
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/workflows`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "*/*",
+          Authorization: `Bearer ${session}`,
+        },
+        body: JSON.stringify(workflow),
+      });
+
+      const res = await response.text();
+
+      if (!response.ok) {
+        toast("Error!", {
+          description: <span style={{ color: "black" }}>{res}</span>,
+        });
+      } else {
+        toast("Success!", {
+          description: <span style={{ color: "black" }}>{res}</span>,
+        });
+      }
+
+      const data = await response.json();
+
+      router.push(`/workflows/${data.id}`);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      toast("Error!", {
+        description: <span style={{ color: "black" }}>{errorMessage}</span>,
+      });
+    }
+  }
+
+  const handleSaveWorkflow: React.MouseEventHandler<HTMLButtonElement> = async (
+    event
+  ) => {
+    event.preventDefault();
+
+    const reactFlowData = reactFlow.toObject();
+
+    try {
+      const session = await getSession();
+
+      const user = await getUser();
+      if (!user) {
+        toast("Error!", {
+          description: "User not found. Please log in again.",
+        });
+        return;
+      }
+
+      const workflow = {
+        ownerId: user.userId,
+        title: title,
+        structure: reactFlowData,
+      };
+
+      const response = await fetch(
+        `http://localhost:8080/api/workflows/${slug}`,
+        {
+          method: "PUT",
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "*/*",
+            Authorization: `Bearer ${session}`,
+          },
+          body: JSON.stringify(workflow),
+        }
+      );
+
+      const res = await response.text();
+
+      if (response.ok) {
+        toast("Success!", {
+          description: (
+            <span style={{ color: "black" }}>
+              Workflow {title} saved successfully.
+            </span>
+          ),
+        });
+      } else {
+        toast("Error!", {
+          description: <span style={{ color: "black" }}>{res}</span>,
+        });
+      }
+    } catch {
+      toast("Error!");
+    }
+  };
+
+  const handleSubmitWorkflow = () => {
+    const reactFlowData = reactFlow.toObject();
+
+    const nodes = reactFlowData.nodes.map((node) => {
+      const incomers = getIncomers(
+        node,
+        reactFlowData.nodes,
+        reactFlowData.edges
+      ).map((incomer) => incomer.id);
+      const outgoers = getOutgoers(
+        node,
+        reactFlowData.nodes,
+        reactFlowData.edges
+      ).map((outgoer) => outgoer.id);
+      return {
+        node_id: node.id,
+        type: node.type,
+        x_axis: node.position.x,
+        y_axis: node.position.y,
+        inputs: incomers,
+        outputs: outgoers,
+        fields: node.data || {},
+      };
+    });
+
+    const workflow = {
+      workflowId: slug,
+      nodes: nodes,
+    };
+
+    console.log("Workflow to be executed:", workflow);
+
+    (async () => {
+      try {
+        const session = await getSession();
+
+        const response = await fetch(
+          "http://localhost:8080/api/workflow-executor/execute",
+          {
+            method: "POST",
+            mode: "cors",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "*/*",
+              Authorization: `Bearer ${session}`,
+            },
+            body: JSON.stringify(workflow),
+          }
+        );
+
+        const res = await response.text();
+
+        if (response.ok) {
+          toast("Success!", {
+            description: <span style={{ color: "black" }}>{res}</span>,
+          });
+        } else {
+          toast("Error!", {
+            description: <span style={{ color: "black" }}>{res}</span>,
+          });
+        }
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        toast("Error!", {
+          description: <span style={{ color: "black" }}>{errorMessage}</span>,
+        });
+      }
+    })();
+  };
+
+  return (
+    <SidebarProvider>
+      <AppSidebar action={(title: string) => () => addWorkflow(title)} />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-2 rounded-md">
+          <div className="flex items-center gap-2 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#">Workflows</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{title}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Button onClick={handleSubmitWorkflow}>Execute Workflow</Button>
+            <Button onClick={handleSaveWorkflow}>Save Workflow</Button>
+          </div>
+        </header>
+        <ReactFlowProvider>
+          <DnDProvider>
+            <DnDFlow id={slug} />
+          </DnDProvider>
+        </ReactFlowProvider>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}

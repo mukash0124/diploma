@@ -1,0 +1,28 @@
+.dndflow {
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    color: black;
+}
+
+.dndflow .dndnode {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+}
+
+.dndflow .reactflow-wrapper {
+    flex-grow: 1;
+    height: 100%;
+}
+
+.dndflow .selectall {
+    margin-top: 10px;
+}
+
+@media screen and (min-width: 768px) {
+    .dndflow {
+        flex-direction: row;
+    }
+}
