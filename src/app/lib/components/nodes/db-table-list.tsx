@@ -27,7 +27,7 @@ const DBTableList = memo(
               </div>
               <Button size="icon">
                 <Image
-                  src="/nodes/column_filter_icon.png"
+                  src="/nodes/db_query_executor.png"
                   alt=""
                   width={16}
                   height={16}

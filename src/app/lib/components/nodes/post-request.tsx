@@ -76,7 +76,7 @@ const PostRequest = memo(
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
                 <div className="text-center text-gray-700 text-[10px]">
                   Post Request
-                  <Button size="icon" variant="destructive">
+                  <Button size="icon" variant="default">
                     <Image
                       src="/nodes/cloud_server_icon.png"
                       alt=""

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -11,9 +11,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useReactFlow } from "@xyflow/react";
+import { Label } from "@/components/ui/label";
 
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
+import { useReactFlow } from "@xyflow/react";
 
 import {
   ContextMenu,
@@ -23,7 +25,16 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-const ColumnFilter = memo(
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const ColumnAggregator = memo(
   ({
     isConnectable,
     id,
@@ -32,7 +43,9 @@ const ColumnFilter = memo(
     isConnectable: boolean;
     id: string;
     data: {
-      columnsToRemove: string[];
+      columns: string[];
+      function: string;
+      outputColumnName: string;
     };
   }) => {
     const { setNodes } = useReactFlow();
@@ -40,7 +53,9 @@ const ColumnFilter = memo(
       (
         id: string,
         newData: Partial<{
-          columnsToRemove: string[];
+          columns: string[];
+          function: string;
+          outputColumnName: string;
         }>
       ) => {
         setNodes((nodes) =>
@@ -63,11 +78,11 @@ const ColumnFilter = memo(
             <ContextMenuTrigger>
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
                 <div className="text-center text-gray-700 text-[10px]">
-                  Column Filter
+                  Column Aggregator
                 </div>
                 <Button size="icon">
                   <Image
-                    src="/nodes/column_filter_icon.png"
+                    src="/nodes/column_aggregator.png"
                     alt=""
                     width={16}
                     height={16}
@@ -103,7 +118,7 @@ const ColumnFilter = memo(
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[650px]">
             <DialogHeader>
               <DialogTitle>Edit node configuration</DialogTitle>
               <DialogDescription>
@@ -111,7 +126,7 @@ const ColumnFilter = memo(
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {(data.columnsToRemove || []).map((value, index) => (
+              {(data.columns || []).map((value, index) => (
                 <div
                   key={index}
                   className="grid grid-cols-4 items-center gap-4"
@@ -121,17 +136,17 @@ const ColumnFilter = memo(
                     className="col-span-3"
                     value={value}
                     onChange={(e) => {
-                      const newItems = [...data.columnsToRemove];
+                      const newItems = [...data.columns];
                       newItems[index] = e.target.value;
-                      updateNodeData(id, { columnsToRemove: newItems });
+                      updateNodeData(id, { columns: newItems });
                     }}
                   />
                   <Button
                     variant="destructive"
                     onClick={() => {
-                      const newItems = [...data.columnsToRemove];
+                      const newItems = [...data.columns];
                       newItems.splice(index, 1);
-                      updateNodeData(id, { columnsToRemove: newItems });
+                      updateNodeData(id, { columns: newItems });
                     }}
                   >
                     Remove
@@ -142,12 +157,64 @@ const ColumnFilter = memo(
               <Button
                 className="mt-2"
                 onClick={() => {
-                  const newItems = [...(data.columnsToRemove || []), ""];
-                  updateNodeData(id, { columnsToRemove: newItems });
+                  const newItems = [...(data.columns || []), ""];
+                  updateNodeData(id, { columns: newItems });
                 }}
               >
                 + Add Column
               </Button>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label
+                  htmlFor="outputColumnName"
+                  className="text-right col-span-2"
+                >
+                  Function
+                </Label>
+                <Select
+                  defaultValue={data.function || ""}
+                  onValueChange={(value) => {
+                    updateNodeData(id, {
+                      columns: data.columns,
+                      function: value,
+                      outputColumnName: data.outputColumnName,
+                    });
+                  }}
+                >
+                  <SelectTrigger className="col-span-2">
+                    <SelectValue placeholder="Select a Function" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="SUM">SUM</SelectItem>
+                      <SelectItem value="AVG">AVG</SelectItem>
+                      <SelectItem value="MIN">MIN</SelectItem>
+                      <SelectItem value="MAX">MAX</SelectItem>
+                      <SelectItem value="COUNT">COUNT</SelectItem>
+                      <SelectItem value="CONCAT">CONCAT</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label
+                  htmlFor="outputColumnName"
+                  className="text-right col-span-2"
+                >
+                  Output Column Name
+                </Label>
+                <Input
+                  id="outputColumnName"
+                  value={data.outputColumnName || ""}
+                  className="col-span-2"
+                  onChange={(evt) =>
+                    updateNodeData(id, {
+                      columns: data.columns,
+                      function: data.function,
+                      outputColumnName: evt.target.value,
+                    })
+                  }
+                />
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -156,6 +223,6 @@ const ColumnFilter = memo(
   }
 );
 
-ColumnFilter.displayName = "ColumnFilter";
+ColumnAggregator.displayName = "ColumnAggregator";
 
-export default ColumnFilter;
+export default ColumnAggregator;

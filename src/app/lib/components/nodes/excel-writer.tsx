@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/context-menu";
 import { useRouter } from "next/navigation";
 
-const DBReader = memo(
+const ExcelWriter = memo(
   ({ isConnectable, id }: { isConnectable: boolean; id: string }) => {
     const router = useRouter();
     return (
@@ -19,22 +19,17 @@ const DBReader = memo(
           <ContextMenuTrigger>
             <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
               <div className="text-center text-gray-700 text-[10px]">
-                DB Reader
+                Excel Writer
               </div>
               <Button size="icon" variant={"default"}>
                 <Image
-                  src="/nodes/db_query_executor.png"
+                  src="/nodes/excel_file_icon.png"
                   alt=""
                   width={16}
                   height={16}
                 />
               </Button>
             </div>
-            <Handle
-              type="source"
-              position={Position.Right}
-              isConnectable={isConnectable}
-            />
             <Handle
               type="target"
               position={Position.Left}
@@ -57,6 +52,6 @@ const DBReader = memo(
   }
 );
 
-DBReader.displayName = "DBReader";
+ExcelWriter.displayName = "ExcelWriter";
 
-export default DBReader;
+export default ExcelWriter;

@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/context-menu";
 import { useRouter } from "next/navigation";
 
-const GetRequest = memo(
+const DeleteRequest = memo(
   ({
     isConnectable,
     id,
@@ -35,7 +35,6 @@ const GetRequest = memo(
     data: {
       url: string;
       headers: Record<string, string>;
-      queryParams: Record<string, string>;
       timeout: number;
     };
   }) => {
@@ -47,7 +46,6 @@ const GetRequest = memo(
         newData: Partial<{
           url: string;
           headers: Record<string, string>;
-          queryParams: Record<string, string>;
           timeout: number;
         }>
       ) => {
@@ -70,15 +68,15 @@ const GetRequest = memo(
           <ContextMenu>
             <ContextMenuTrigger>
               <Handle
-                type="source"
-                position={Position.Right}
+                type="target"
+                position={Position.Left}
                 onConnect={(params) => console.log("handle onConnect", params)}
                 isConnectable={isConnectable}
               />
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
                 <div className="text-center text-gray-700 text-[10px]">
-                  Get Request
-                  <Button size="icon" variant="destructive">
+                  Delete Request
+                  <Button size="icon" variant="default">
                     <Image
                       src="/nodes/cloud_server_icon.png"
                       alt=""
@@ -107,7 +105,7 @@ const GetRequest = memo(
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-          <DialogContent className="sm:max-w-[650px]">
+          <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Edit node configuration</DialogTitle>
               <DialogDescription>
@@ -204,6 +202,6 @@ const GetRequest = memo(
   }
 );
 
-GetRequest.displayName = "GetRequest";
+DeleteRequest.displayName = "DeleteRequest";
 
-export default GetRequest;
+export default DeleteRequest;

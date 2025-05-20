@@ -1,17 +1,7 @@
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useReactFlow } from "@xyflow/react";
 
 import { useRouter } from "next/navigation";
 
@@ -22,8 +12,19 @@ import {
   ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useReactFlow } from "@xyflow/react";
 
-const ColumnFilter = memo(
+const DBTableSelector = memo(
   ({
     isConnectable,
     id,
@@ -32,28 +33,10 @@ const ColumnFilter = memo(
     isConnectable: boolean;
     id: string;
     data: {
-      columnsToRemove: string[];
+      tableName: string;
     };
   }) => {
-    const { setNodes } = useReactFlow();
-    const updateNodeData = useCallback(
-      (
-        id: string,
-        newData: Partial<{
-          columnsToRemove: string[];
-        }>
-      ) => {
-        setNodes((nodes) =>
-          nodes.map((node) =>
-            node.id === id
-              ? { ...node, data: { ...node.data, ...newData } }
-              : node
-          )
-        );
-      },
-      [setNodes]
-    );
-
+    const { updateNodeData } = useReactFlow();
     const router = useRouter();
 
     return (
@@ -63,11 +46,11 @@ const ColumnFilter = memo(
             <ContextMenuTrigger>
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
                 <div className="text-center text-gray-700 text-[10px]">
-                  Column Filter
+                  DB Table Selector
                 </div>
                 <Button size="icon">
                   <Image
-                    src="/nodes/column_filter_icon.png"
+                    src="/nodes/db_query_executor.png"
                     alt=""
                     width={16}
                     height={16}
@@ -103,7 +86,7 @@ const ColumnFilter = memo(
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[800px]">
             <DialogHeader>
               <DialogTitle>Edit node configuration</DialogTitle>
               <DialogDescription>
@@ -111,43 +94,21 @@ const ColumnFilter = memo(
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {(data.columnsToRemove || []).map((value, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-4 items-center gap-4"
-                >
-                  <Input
-                    placeholder={`Column ${index + 1}`}
-                    className="col-span-3"
-                    value={value}
-                    onChange={(e) => {
-                      const newItems = [...data.columnsToRemove];
-                      newItems[index] = e.target.value;
-                      updateNodeData(id, { columnsToRemove: newItems });
-                    }}
-                  />
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      const newItems = [...data.columnsToRemove];
-                      newItems.splice(index, 1);
-                      updateNodeData(id, { columnsToRemove: newItems });
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-
-              <Button
-                className="mt-2"
-                onClick={() => {
-                  const newItems = [...(data.columnsToRemove || []), ""];
-                  updateNodeData(id, { columnsToRemove: newItems });
-                }}
-              >
-                + Add Column
-              </Button>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tableName" className="text-right">
+                  Name of the table
+                </Label>
+                <Input
+                  id="tableName"
+                  value={data.tableName || ""}
+                  className="col-span-3"
+                  onChange={(evt) =>
+                    updateNodeData(id, {
+                      tableName: evt.target.value,
+                    })
+                  }
+                />
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -156,6 +117,6 @@ const ColumnFilter = memo(
   }
 );
 
-ColumnFilter.displayName = "ColumnFilter";
+DBTableSelector.displayName = "DBTableSelector";
 
-export default ColumnFilter;
+export default DBTableSelector;

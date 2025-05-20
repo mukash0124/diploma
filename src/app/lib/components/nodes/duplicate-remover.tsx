@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useCallback } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -11,7 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useReactFlow } from "@xyflow/react";
 
 import { useRouter } from "next/navigation";
@@ -33,10 +32,27 @@ const DuplicateRemover = memo(
     isConnectable: boolean;
     id: string;
     data: {
-      columnsToRemove: string[];
+      selectedColumns: string[];
     };
   }) => {
-    const { updateNodeData } = useReactFlow();
+    const { setNodes } = useReactFlow();
+    const updateNodeData = useCallback(
+      (
+        id: string,
+        newData: Partial<{
+          selectedColumns: string[];
+        }>
+      ) => {
+        setNodes((nodes) =>
+          nodes.map((node) =>
+            node.id === id
+              ? { ...node, data: { ...node.data, ...newData } }
+              : node
+          )
+        );
+      },
+      [setNodes]
+    );
 
     const router = useRouter();
 
@@ -46,7 +62,7 @@ const DuplicateRemover = memo(
           <ContextMenu>
             <ContextMenuTrigger>
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
-                <div className="text-center text-gray-700 text-[9px]">
+                <div className="text-center text-gray-700 text-[10px]">
                   DuplicateRemover
                 </div>
                 <Button size="icon">
@@ -87,7 +103,7 @@ const DuplicateRemover = memo(
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-          <DialogContent className="sm:max-w-[800px]">
+          <DialogContent className="sm:max-w-[550px]">
             <DialogHeader>
               <DialogTitle>Edit node configuration</DialogTitle>
               <DialogDescription>
@@ -95,23 +111,43 @@ const DuplicateRemover = memo(
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="columns" className="text-right">
-                  Columns to filter (write comma separated)
-                </Label>
-                <Input
-                  id="columns"
-                  value={data.columnsToRemove?.join(", ") || ""}
-                  className="col-span-3"
-                  onChange={(evt) =>
-                    updateNodeData(id, {
-                      columnsToRemove: evt.target.value
-                        .split(",")
-                        .map((item) => item.trim()),
-                    })
-                  }
-                />
-              </div>
+              {(data.selectedColumns || []).map((value, index) => (
+                <div
+                  key={index}
+                  className="grid grid-cols-4 items-center gap-4"
+                >
+                  <Input
+                    placeholder={`Column ${index + 1}`}
+                    className="col-span-3"
+                    value={value}
+                    onChange={(e) => {
+                      const newItems = [...data.selectedColumns];
+                      newItems[index] = e.target.value;
+                      updateNodeData(id, { selectedColumns: newItems });
+                    }}
+                  />
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      const newItems = [...data.selectedColumns];
+                      newItems.splice(index, 1);
+                      updateNodeData(id, { selectedColumns: newItems });
+                    }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+
+              <Button
+                className="mt-2"
+                onClick={() => {
+                  const newItems = [...(data.selectedColumns || []), ""];
+                  updateNodeData(id, { selectedColumns: newItems });
+                }}
+              >
+                + Add Column
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -120,6 +156,6 @@ const DuplicateRemover = memo(
   }
 );
 
-DuplicateRemover.displayName = "DuplicateRemover";
+DuplicateRemover.displayName = "ColumnFilter";
 
 export default DuplicateRemover;

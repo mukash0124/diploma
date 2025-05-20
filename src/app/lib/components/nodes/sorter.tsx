@@ -10,6 +10,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useReactFlow } from "@xyflow/react";
 
@@ -23,7 +25,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-const ColumnFilter = memo(
+const Sorter = memo(
   ({
     isConnectable,
     id,
@@ -32,7 +34,8 @@ const ColumnFilter = memo(
     isConnectable: boolean;
     id: string;
     data: {
-      columnsToRemove: string[];
+      columns: string[];
+      ascending: boolean;
     };
   }) => {
     const { setNodes } = useReactFlow();
@@ -40,7 +43,8 @@ const ColumnFilter = memo(
       (
         id: string,
         newData: Partial<{
-          columnsToRemove: string[];
+          columns: string[];
+          ascending: boolean;
         }>
       ) => {
         setNodes((nodes) =>
@@ -63,11 +67,11 @@ const ColumnFilter = memo(
             <ContextMenuTrigger>
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
                 <div className="text-center text-gray-700 text-[10px]">
-                  Column Filter
+                  Sorter
                 </div>
                 <Button size="icon">
                   <Image
-                    src="/nodes/column_filter_icon.png"
+                    src="/nodes/sorter.png"
                     alt=""
                     width={16}
                     height={16}
@@ -111,7 +115,7 @@ const ColumnFilter = memo(
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {(data.columnsToRemove || []).map((value, index) => (
+              {(data.columns || []).map((value, index) => (
                 <div
                   key={index}
                   className="grid grid-cols-4 items-center gap-4"
@@ -121,17 +125,17 @@ const ColumnFilter = memo(
                     className="col-span-3"
                     value={value}
                     onChange={(e) => {
-                      const newItems = [...data.columnsToRemove];
+                      const newItems = [...data.columns];
                       newItems[index] = e.target.value;
-                      updateNodeData(id, { columnsToRemove: newItems });
+                      updateNodeData(id, { columns: newItems });
                     }}
                   />
                   <Button
                     variant="destructive"
                     onClick={() => {
-                      const newItems = [...data.columnsToRemove];
+                      const newItems = [...data.columns];
                       newItems.splice(index, 1);
-                      updateNodeData(id, { columnsToRemove: newItems });
+                      updateNodeData(id, { columns: newItems });
                     }}
                   >
                     Remove
@@ -142,12 +146,27 @@ const ColumnFilter = memo(
               <Button
                 className="mt-2"
                 onClick={() => {
-                  const newItems = [...(data.columnsToRemove || []), ""];
-                  updateNodeData(id, { columnsToRemove: newItems });
+                  const newItems = [...(data.columns || []), ""];
+                  updateNodeData(id, { columns: newItems });
                 }}
               >
                 + Add Column
               </Button>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="ascending" className="text-right col-span-2">
+                  Ascending (Descending if unchecked)
+                </Label>
+                <Switch
+                  id="ascending"
+                  className="col-span-2"
+                  checked={data.ascending ?? true}
+                  onCheckedChange={(evt) =>
+                    updateNodeData(id, {
+                      ascending: evt,
+                    })
+                  }
+                />
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -156,6 +175,6 @@ const ColumnFilter = memo(
   }
 );
 
-ColumnFilter.displayName = "ColumnFilter";
+Sorter.displayName = "Sorter";
 
-export default ColumnFilter;
+export default Sorter;

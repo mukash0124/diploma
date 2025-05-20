@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useReactFlow } from "@xyflow/react";
 
 import { useRouter } from "next/navigation";
@@ -23,7 +24,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-const ColumnFilter = memo(
+const DBQueryReader = memo(
   ({
     isConnectable,
     id,
@@ -32,27 +33,10 @@ const ColumnFilter = memo(
     isConnectable: boolean;
     id: string;
     data: {
-      columnsToRemove: string[];
+      statementQuery: string;
     };
   }) => {
-    const { setNodes } = useReactFlow();
-    const updateNodeData = useCallback(
-      (
-        id: string,
-        newData: Partial<{
-          columnsToRemove: string[];
-        }>
-      ) => {
-        setNodes((nodes) =>
-          nodes.map((node) =>
-            node.id === id
-              ? { ...node, data: { ...node.data, ...newData } }
-              : node
-          )
-        );
-      },
-      [setNodes]
-    );
+    const { updateNodeData } = useReactFlow();
 
     const router = useRouter();
 
@@ -63,11 +47,11 @@ const ColumnFilter = memo(
             <ContextMenuTrigger>
               <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
                 <div className="text-center text-gray-700 text-[10px]">
-                  Column Filter
+                  DB Query Reader
                 </div>
-                <Button size="icon">
+                <Button size="icon" variant="default">
                   <Image
-                    src="/nodes/column_filter_icon.png"
+                    src="/nodes/db_query_executor.png"
                     alt=""
                     width={16}
                     height={16}
@@ -75,13 +59,13 @@ const ColumnFilter = memo(
                 </Button>
               </div>
               <Handle
-                type="source"
-                position={Position.Right}
+                type="target"
+                position={Position.Left}
                 isConnectable={isConnectable}
               />
               <Handle
-                type="target"
-                position={Position.Left}
+                type="source"
+                position={Position.Right}
                 isConnectable={isConnectable}
               />
             </ContextMenuTrigger>
@@ -103,7 +87,7 @@ const ColumnFilter = memo(
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[800px]">
             <DialogHeader>
               <DialogTitle>Edit node configuration</DialogTitle>
               <DialogDescription>
@@ -111,43 +95,21 @@ const ColumnFilter = memo(
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {(data.columnsToRemove || []).map((value, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-4 items-center gap-4"
-                >
-                  <Input
-                    placeholder={`Column ${index + 1}`}
-                    className="col-span-3"
-                    value={value}
-                    onChange={(e) => {
-                      const newItems = [...data.columnsToRemove];
-                      newItems[index] = e.target.value;
-                      updateNodeData(id, { columnsToRemove: newItems });
-                    }}
-                  />
-                  <Button
-                    variant="destructive"
-                    onClick={() => {
-                      const newItems = [...data.columnsToRemove];
-                      newItems.splice(index, 1);
-                      updateNodeData(id, { columnsToRemove: newItems });
-                    }}
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-
-              <Button
-                className="mt-2"
-                onClick={() => {
-                  const newItems = [...(data.columnsToRemove || []), ""];
-                  updateNodeData(id, { columnsToRemove: newItems });
-                }}
-              >
-                + Add Column
-              </Button>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="statementQuery" className="text-right">
+                  Query to execute
+                </Label>
+                <Input
+                  id="statementQuery"
+                  value={data.statementQuery || ""}
+                  className="col-span-3"
+                  onChange={(evt) =>
+                    updateNodeData(id, {
+                      statementQuery: evt.target.value,
+                    })
+                  }
+                />
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -156,6 +118,6 @@ const ColumnFilter = memo(
   }
 );
 
-ColumnFilter.displayName = "ColumnFilter";
+DBQueryReader.displayName = "DBQueryReader";
 
-export default ColumnFilter;
+export default DBQueryReader;

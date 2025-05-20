@@ -59,8 +59,17 @@ import { cache } from "react";
 import { toast } from "sonner";
 import PostRequest from "@/app/lib/components/nodes/post-request";
 import ColumnRenamer from "@/app/lib/components/nodes/column-renamer";
-import DBReader from "@/app/lib/components/nodes/db-reader";
+import DBQueryReader from "@/app/lib/components/nodes/db-query-reader";
 import DBTableList from "@/app/lib/components/nodes/db-table-list";
+import ExcelWriter from "@/app/lib/components/nodes/excel-writer";
+import DeleteRequest from "@/app/lib/components/nodes/delete-request";
+import PatchRequest from "@/app/lib/components/nodes/patch-request";
+import DBTableSelector from "@/app/lib/components/nodes/db-table-selector";
+import DBReader from "@/app/lib/components/nodes/db-reader";
+import ColumnAggregator from "@/app/lib/components/nodes/column-aggregator";
+import GroupBy from "@/app/lib/components/nodes/group-by";
+import Sorter from "@/app/lib/components/nodes/sorter";
+import Joiner from "@/app/lib/components/nodes/joiner";
 
 const proOptions = { hideAttribution: true };
 
@@ -71,11 +80,20 @@ const nodeTypes = {
   csv_reader: CSVReader,
   csv_writer: CSVWriter,
   db_connector: DBConnector,
+  db_query_reader: DBQueryReader,
   db_reader: DBReader,
   duplicate_remover: DuplicateRemover,
   post_request: PostRequest,
   column_renamer: ColumnRenamer,
   db_table_list: DBTableList,
+  db_table_selector: DBTableSelector,
+  excel_writer: ExcelWriter,
+  delete_request: DeleteRequest,
+  patch_request: PatchRequest,
+  column_aggregator: ColumnAggregator,
+  Group_By: GroupBy,
+  node_sorter: Sorter,
+  node_join: Joiner,
 };
 
 const getWorkflow: (id: string | string[] | undefined) => Promise<
@@ -112,7 +130,11 @@ const getWorkflow: (id: string | string[] | undefined) => Promise<
 
     if (!response.ok) {
       toast("Error!", {
-        description: "Failed to fetch workflow, error: " + response.statusText,
+        description: (
+          <span style={{ color: "black" }}>
+            Failed to fetch workflow, error: {response.statusText}
+          </span>
+        ),
       });
       return null;
     }
@@ -120,7 +142,11 @@ const getWorkflow: (id: string | string[] | undefined) => Promise<
     return response.json();
   } catch (error) {
     toast("Error!", {
-      description: `Failed to fetch workflow, error: ${error}`,
+      description: (
+        <span style={{ color: "black" }}>
+          Failed to fetch workflow, error: {error as string}
+        </span>
+      ),
     });
     return null;
   }
@@ -164,6 +190,8 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
     (event) => {
       event.preventDefault();
 
+      const type = event.dataTransfer.getData("application/reactflow");
+
       if (!type) {
         return;
       }
@@ -182,22 +210,20 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes, screenToFlowPosition, type]
+    [setNodes, screenToFlowPosition]
   );
 
   const onDragStart = (event, nodeType) => {
     setType(nodeType);
-    event.dataTransfer.setData("text/plain", nodeType);
+    event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 
   return (
-    <div className="dndflow">
-      <NodeGroup />
+    <div className="dndflow pt-1">
       <div
-        className="reactflow-wrapper mt-1 border-2 rounded-md"
+        className="reactflow-wrapper border-2 rounded-md"
         ref={reactFlowWrapper}
-        style={{ height: "100vh" }}
       >
         <ReactFlow
           nodes={nodes}
@@ -432,8 +458,8 @@ export default function WorkflowPage({
   return (
     <SidebarProvider>
       <AppSidebar action={(title: string) => () => addWorkflow(title)} />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-2 rounded-md">
+      <SidebarInset className="w-full max-w-full overflow-x-hidden">
+        <header className="flex h-16 shrink-0 items-center gap-2 border-2 rounded-md w-full max-w-full overflow-hidden">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
@@ -454,6 +480,7 @@ export default function WorkflowPage({
           </div>
         </header>
         <ReactFlowProvider>
+          <NodeGroup />
           <DnDProvider>
             <DnDFlow id={slug} />
           </DnDProvider>
