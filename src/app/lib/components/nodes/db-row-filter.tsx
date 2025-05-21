@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
 import {
   Dialog,
@@ -23,7 +22,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
-const RowFilter = memo(
+const DBRowFilter = memo(
   ({
     isConnectable,
     id,
@@ -32,11 +31,12 @@ const RowFilter = memo(
     isConnectable: boolean;
     id: string;
     data: {
-      column: string;
-      operator: string;
-      value: string;
-      caseSensitive: boolean;
-      excludeMatches: boolean;
+      tableName: string;
+      filters: {
+        column: string;
+        operator: string;
+        value: string;
+      };
     };
   }) => {
     const { updateNodeData } = useReactFlow();
@@ -50,26 +50,26 @@ const RowFilter = memo(
             <ContextMenuTrigger>
               <div className="w-16 h-16 p-1.5 flex flex-col items-center justify-center gap-y-1 rounded-md border border-gray-300 bg-gray-100 overflow-hidden">
                 <div className="text-[7px] font-medium text-center leading-none">
-                  Row Filter
+                  DB Row Filter
                 </div>
 
                 <div className="relative w-9 h-9 overflow-hidden rounded-sm shrink-0">
                   <Image
-                    src="/nodes/row_filter.png"
-                    alt="row_filter"
+                    src="/nodes/db_row_filter.png"
+                    alt="db_row_filter"
                     fill
                     className="object-cover"
                   />
                 </div>
               </div>
               <Handle
-                type="source"
-                position={Position.Right}
+                type="target"
+                position={Position.Left}
                 isConnectable={isConnectable}
               />
               <Handle
-                type="target"
-                position={Position.Left}
+                type="source"
+                position={Position.Right}
                 isConnectable={isConnectable}
               />
             </ContextMenuTrigger>
@@ -87,7 +87,7 @@ const RowFilter = memo(
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
-          <DialogContent className="sm:max-w-[650px]">
+          <DialogContent className="sm:max-w-[800px]">
             <DialogHeader>
               <DialogTitle>Edit node configuration</DialogTitle>
               <DialogDescription>
@@ -96,94 +96,77 @@ const RowFilter = memo(
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="column" className="text-right">
-                  Column to filter out
+                <Label htmlFor="tableName" className="text-right">
+                  Name of the table
                 </Label>
                 <Input
-                  id="column"
-                  value={data.column || ""}
+                  id="tableName"
+                  value={data.tableName || ""}
                   className="col-span-3"
                   onChange={(evt) =>
                     updateNodeData(id, {
-                      column: evt.target.value,
-                      operator: data.operator,
-                      value: data.value,
-                      caseSensitive: data.caseSensitive,
-                      excludeMatches: data.excludeMatches,
+                      tableName: evt.target.value,
+                      filters: data.filters,
+                    })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="statementQuery" className="text-right">
+                  Column to filter out
+                </Label>
+                <Input
+                  id="statementQuery"
+                  value={data.filters?.column || ""}
+                  className="col-span-3"
+                  onChange={(evt) =>
+                    updateNodeData(id, {
+                      tableName: data.tableName,
+                      filters: {
+                        column: evt.target.value,
+                        operator: data.filters?.operator || "",
+                        value: data.filters?.value || "",
+                      },
                     })
                   }
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="operator" className="text-right">
-                  Operator
+                  Operator to compare
                 </Label>
                 <Input
                   id="operator"
-                  value={data.operator || ""}
+                  value={data.filters?.operator || ""}
                   className="col-span-3"
                   onChange={(evt) =>
                     updateNodeData(id, {
-                      column: data.column,
-                      operator: evt.target.value,
-                      value: data.value,
-                      caseSensitive: data.caseSensitive,
-                      excludeMatches: data.excludeMatches,
+                      tableName: data.tableName,
+                      filters: {
+                        column: data.filters?.column || "",
+                        operator: evt.target.value,
+                        value: data.filters?.value || "",
+                      },
                     })
                   }
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="value" className="text-right">
-                  Value
+                  Value to compare
                 </Label>
                 <Input
                   id="value"
-                  value={data.value || ""}
+                  value={data.filters?.value || ""}
                   className="col-span-3"
                   onChange={(evt) =>
                     updateNodeData(id, {
-                      column: data.column,
-                      operator: data.operator,
-                      value: evt.target.value,
-                      caseSensitive: data.caseSensitive,
-                      excludeMatches: data.excludeMatches,
-                    })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="caseSensitive" className="text-right">
-                  Case Sensitive
-                </Label>
-                <Switch
-                  id="caseSensitive"
-                  checked={data.caseSensitive || false}
-                  onCheckedChange={(evt) =>
-                    updateNodeData(id, {
-                      column: data.column,
-                      operator: data.operator,
-                      value: data.value,
-                      caseSensitive: evt,
-                      excludeMatches: data.excludeMatches,
-                    })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="excludeMatches" className="text-right">
-                  Exclude Matches
-                </Label>
-                <Switch
-                  id="excludeMatches"
-                  checked={data.excludeMatches || false}
-                  onCheckedChange={(evt) =>
-                    updateNodeData(id, {
-                      column: data.column,
-                      operator: data.operator,
-                      value: data.value,
-                      caseSensitive: data.caseSensitive,
-                      excludeMatches: evt,
+                      tableName: data.tableName,
+                      filters: {
+                        column: data.filters?.column || "",
+                        operator: data.filters?.operator || "",
+                        value: evt.target.value,
+                      },
                     })
                   }
                 />
@@ -196,6 +179,6 @@ const RowFilter = memo(
   }
 );
 
-RowFilter.displayName = "RowFilter";
+DBRowFilter.displayName = "DBRowFilter";
 
-export default RowFilter;
+export default DBRowFilter;

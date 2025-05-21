@@ -1,15 +1,6 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import Image from "next/image";
-
-import { useRouter } from "next/navigation";
-
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +13,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useReactFlow } from "@xyflow/react";
 
-const DBTableSelector = memo(
+import { useRouter } from "next/navigation";
+
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+
+const DBMerge = memo(
   ({
     isConnectable,
     id,
@@ -35,6 +35,7 @@ const DBTableSelector = memo(
     };
   }) => {
     const { updateNodeData } = useReactFlow();
+
     const router = useRouter();
 
     return (
@@ -44,26 +45,26 @@ const DBTableSelector = memo(
             <ContextMenuTrigger>
               <div className="w-16 h-16 p-1.5 flex flex-col items-center justify-center gap-y-1 rounded-md border border-gray-300 bg-gray-100 overflow-hidden">
                 <div className="text-[7px] font-medium text-center leading-none">
-                  DB Table Selector
+                  DB Merge
                 </div>
 
                 <div className="relative w-9 h-9 overflow-hidden rounded-sm shrink-0">
                   <Image
-                    src="/nodes/db_table_selector.png"
-                    alt="db_table_selector"
+                    src="/nodes/db_merge.png"
+                    alt="db_merge"
                     fill
                     className="object-cover"
                   />
                 </div>
               </div>
               <Handle
-                type="source"
-                position={Position.Right}
+                type="target"
+                position={Position.Left}
                 isConnectable={isConnectable}
               />
               <Handle
-                type="target"
-                position={Position.Left}
+                type="source"
+                position={Position.Right}
                 isConnectable={isConnectable}
               />
             </ContextMenuTrigger>
@@ -90,11 +91,11 @@ const DBTableSelector = memo(
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="tableName" className="text-right">
-                  Name of the table
+                <Label htmlFor="statementQuery" className="text-right">
+                  Name of the table to insert data
                 </Label>
                 <Input
-                  id="tableName"
+                  id="statementQuery"
                   value={data.tableName || ""}
                   className="col-span-3"
                   onChange={(evt) =>
@@ -112,6 +113,6 @@ const DBTableSelector = memo(
   }
 );
 
-DBTableSelector.displayName = "DBTableSelector";
+DBMerge.displayName = "DBMerge";
 
-export default DBTableSelector;
+export default DBMerge;

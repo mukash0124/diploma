@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
 import { useRouter } from "next/navigation";
@@ -9,7 +8,6 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
@@ -21,18 +19,19 @@ const DBTableList = memo(
       <>
         <ContextMenu>
           <ContextMenuTrigger>
-            <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
-              <div className="text-center text-gray-700 text-[10px]">
+            <div className="w-16 h-16 p-1.5 flex flex-col items-center justify-center gap-y-1 rounded-md border border-gray-300 bg-gray-100 overflow-hidden">
+              <div className="text-[7px] font-medium text-center leading-none">
                 DB Table List
               </div>
-              <Button size="icon">
+
+              <div className="relative w-9 h-9 overflow-hidden rounded-sm shrink-0">
                 <Image
-                  src="/nodes/db_query_executor.png"
-                  alt=""
-                  width={16}
-                  height={16}
+                  src="/nodes/db_table_list.png"
+                  alt="db_table_list"
+                  fill
+                  className="object-cover"
                 />
-              </Button>
+              </div>
             </div>
             <Handle
               type="source"
@@ -53,7 +52,6 @@ const DBTableList = memo(
               }}
             >
               Show results
-              <ContextMenuShortcut>⌘]</ContextMenuShortcut>
             </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>

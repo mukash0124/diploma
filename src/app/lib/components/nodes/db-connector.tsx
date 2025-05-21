@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
-import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import {
   Dialog,
@@ -20,7 +19,6 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuShortcut,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 
@@ -49,18 +47,19 @@ const DBConnector = memo(
         <Dialog>
           <ContextMenu>
             <ContextMenuTrigger>
-              <div className="flex flex-col items-center justify-center w-20 h-20 bg-gray-100 border border-gray-300 rounded-lg">
-                <div className="text-center text-gray-700 text-[10px]">
+              <div className="w-16 h-16 p-1.5 flex flex-col items-center justify-center gap-y-1 rounded-md border border-gray-300 bg-gray-100 overflow-hidden">
+                <div className="text-[7px] font-medium text-center leading-none">
                   DB Connector
                 </div>
-                <Button size="icon" variant="destructive">
+
+                <div className="relative w-9 h-9 overflow-hidden rounded-sm shrink-0">
                   <Image
                     src="/nodes/db_connector.png"
-                    alt=""
-                    width={16}
-                    height={16}
+                    alt="db_connector"
+                    fill
+                    className="object-cover"
                   />
-                </Button>
+                </div>
               </div>
               <Handle
                 type="source"
@@ -70,10 +69,7 @@ const DBConnector = memo(
             </ContextMenuTrigger>
             <ContextMenuContent className="w-64">
               <DialogTrigger asChild>
-                <ContextMenuItem inset>
-                  Change Configuration
-                  <ContextMenuShortcut>[⌘</ContextMenuShortcut>
-                </ContextMenuItem>
+                <ContextMenuItem inset>Change Configuration</ContextMenuItem>
               </DialogTrigger>
               <ContextMenuItem
                 inset
@@ -82,7 +78,6 @@ const DBConnector = memo(
                 }}
               >
                 Show results
-                <ContextMenuShortcut>⌘]</ContextMenuShortcut>
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>

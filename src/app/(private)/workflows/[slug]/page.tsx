@@ -14,6 +14,8 @@ import {
   getIncomers,
   getOutgoers,
   ReactFlowInstance,
+  DefaultEdgeOptions,
+  MarkerType,
 } from "@xyflow/react";
 
 import { useRouter } from "next/navigation";
@@ -70,6 +72,12 @@ import ColumnAggregator from "@/app/lib/components/nodes/column-aggregator";
 import GroupBy from "@/app/lib/components/nodes/group-by";
 import Sorter from "@/app/lib/components/nodes/sorter";
 import Joiner from "@/app/lib/components/nodes/joiner";
+import DBTableCreator from "@/app/lib/components/nodes/db-table-creator";
+import DBTableRemover from "@/app/lib/components/nodes/db-table-remover";
+import DBWriter from "@/app/lib/components/nodes/db-writer";
+import DBMerge from "@/app/lib/components/nodes/db-merge";
+import DBRowFilter from "@/app/lib/components/nodes/db-row-filter";
+import MissingDataProccessing from "@/app/lib/components/nodes/missing-data-processing";
 
 const proOptions = { hideAttribution: true };
 
@@ -94,6 +102,12 @@ const nodeTypes = {
   Group_By: GroupBy,
   node_sorter: Sorter,
   node_join: Joiner,
+  db_table_creator: DBTableCreator,
+  db_table_remover: DBTableRemover,
+  db_writer: DBWriter,
+  db_merge: DBMerge,
+  db_row_filter: DBRowFilter,
+  missing_data_proccessing: MissingDataProccessing,
 };
 
 const getWorkflow: (id: string | string[] | undefined) => Promise<
@@ -161,6 +175,14 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const edgeOptions: DefaultEdgeOptions = {
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+    },
+    style: {
+      stroke: "#000",
+    },
+  };
 
   reactFlow = useReactFlow();
 
@@ -236,6 +258,8 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
           onDragStart={(event) => onDragStart(event, "input")}
           onDragOver={onDragOver}
           proOptions={proOptions}
+          defaultEdgeOptions={edgeOptions}
+          defaultMarkerColor="#000"
           fitView
         >
           <Controls />
@@ -302,21 +326,23 @@ export default function WorkflowPage({
         body: JSON.stringify(workflow),
       });
 
-      const res = await response.text();
+      const res = await response.json();
 
       if (!response.ok) {
         toast("Error!", {
-          description: <span style={{ color: "black" }}>{res}</span>,
+          description: (
+            <span style={{ color: "black" }}>{response.statusText}</span>
+          ),
         });
       } else {
         toast("Success!", {
-          description: <span style={{ color: "black" }}>{res}</span>,
+          description: (
+            <span style={{ color: "black" }}>{response.statusText}</span>
+          ),
         });
       }
 
-      const data = await response.json();
-
-      router.push(`/workflows/${data.id}`);
+      router.push(`/workflows/${res.id}`);
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

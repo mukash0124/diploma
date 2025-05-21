@@ -9,6 +9,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 import React from "react";
 
 import { useRouter } from "next/navigation";
@@ -208,7 +210,7 @@ export default function WorkflowPage({
   return (
     <SidebarProvider>
       <AppSidebar action={(title: string) => () => addWorkflow(title)} />
-      <SidebarInset>
+      <SidebarInset className="w-full max-w-full overflow-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 border-2 rounded-md">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
@@ -226,26 +228,29 @@ export default function WorkflowPage({
             </Breadcrumb>
           </div>
         </header>
-        <div className="p-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {headers.map((header) => (
-                  <TableHead key={header}>{header}</TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {results?.result.list?.map((item, rowIndex) => (
-                <TableRow key={rowIndex}>
+        <ScrollArea>
+          <div className="p-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
                   {headers.map((header) => (
-                    <TableCell key={header}>{String(item[header])}</TableCell>
+                    <TableHead key={header}>{header}</TableHead>
                   ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {results?.result.list?.map((item, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {headers.map((header) => (
+                      <TableCell key={header}>{String(item[header])}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ScrollBar orientation="horizontal"></ScrollBar>
+        </ScrollArea>
       </SidebarInset>
     </SidebarProvider>
   );
