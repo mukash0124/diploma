@@ -46,7 +46,7 @@ export async function signin(state: FormState, formData: FormData) {
     };
   } else {
     await createSession(token);
-    redirect("/workflows/new");
+    redirect("/workflows");
   }
 }
 
@@ -93,7 +93,7 @@ export async function signup(state: FormState, formData: FormData) {
   } else {
     await createSession(token);
     console.log("Session created successfully", token);
-    redirect("/workflows/new");
+    redirect("/workflows");
   }
 }
 

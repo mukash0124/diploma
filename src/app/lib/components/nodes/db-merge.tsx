@@ -27,9 +27,11 @@ const DBMerge = memo(
     isConnectable,
     id,
     data,
+    workflowId,
   }: {
     isConnectable: boolean;
     id: string;
+    workflowId: string;
     data: {
       tableName: string;
     };
@@ -62,11 +64,6 @@ const DBMerge = memo(
                 position={Position.Left}
                 isConnectable={isConnectable}
               />
-              <Handle
-                type="source"
-                position={Position.Right}
-                isConnectable={isConnectable}
-              />
             </ContextMenuTrigger>
             <ContextMenuContent className="w-64">
               <DialogTrigger asChild>
@@ -75,7 +72,7 @@ const DBMerge = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}`);
+                  router.push(`/results/${id}?workflowId=${workflowId}`);
                 }}
               >
                 Show results
@@ -90,8 +87,11 @@ const DBMerge = memo(
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="statementQuery" className="text-right">
+              <div className="grid grid-cols-5 items-center gap-4">
+                <Label
+                  htmlFor="statementQuery"
+                  className="text-right col-span-2"
+                >
                   Name of the table to insert data
                 </Label>
                 <Input

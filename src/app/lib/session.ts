@@ -26,8 +26,7 @@ export async function getSession() {
   const session = cookieStore.get("session");
 
   if (!session) {
-    redirect("/auth/signin");
-    return null;
+    redirect("/signin");
   }
 
   return session.value;

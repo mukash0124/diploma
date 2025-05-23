@@ -10,7 +10,15 @@ import {
 import { useRouter } from "next/navigation";
 
 const CSVWriter = memo(
-  ({ isConnectable, id }: { isConnectable: boolean; id: string }) => {
+  ({
+    isConnectable,
+    id,
+    workflowId,
+  }: {
+    isConnectable: boolean;
+    id: string;
+    workflowId: string;
+  }) => {
     const router = useRouter();
     return (
       <>
@@ -40,7 +48,7 @@ const CSVWriter = memo(
             <ContextMenuItem
               inset
               onClick={() => {
-                router.push(`/results/${id}`);
+                router.push(`/results/${id}?workflowId=${workflowId}`);
               }}
             >
               Show results

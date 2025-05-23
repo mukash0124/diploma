@@ -38,9 +38,11 @@ const ColumnAggregator = memo(
     isConnectable,
     id,
     data,
+    workflowId,
   }: {
     isConnectable: boolean;
     id: string;
+    workflowId: string;
     data: {
       columns: string[];
       function: string;
@@ -107,7 +109,7 @@ const ColumnAggregator = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}`);
+                  router.push(`/results/${id}?workflowId=${workflowId}`);
                 }}
               >
                 Show results

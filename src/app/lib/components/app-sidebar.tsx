@@ -17,28 +17,20 @@ import {
 
 import { getUser } from "@/app/lib/dal";
 import { getSession } from "@/app/lib/session";
-import { cache, MouseEventHandler } from "react";
-import { redirect } from "next/navigation";
 import { toast } from "sonner";
 
-const getWorkflows: () => Promise<
+async function getWorkflows(): Promise<
   | [{ id: string; title: string; ownerId: string; structure: object }]
   | null
   | undefined
-> = cache(async () => {
+> {
   const session = await getSession();
-  if (!session) {
-    redirect("/signin");
-  }
 
   const user = await getUser();
-  if (!user) {
-    redirect("/signin");
-  }
 
   try {
     const response = await fetch(
-      `http://localhost:8080/api/workflows/${user.userId}`,
+      `http://localhost:8080/api/workflows/${user?.userId}`,
       {
         method: "GET",
         headers: {
@@ -50,7 +42,11 @@ const getWorkflows: () => Promise<
 
     if (!response.ok) {
       toast("Error!", {
-        description: "Failed to fetch workflows, error: " + response.statusText,
+        description: (
+          <span style={{ color: "black" }}>
+            Failed to fetch workflows, error: {response.statusText}
+          </span>
+        ),
       });
       return null;
     }
@@ -58,16 +54,20 @@ const getWorkflows: () => Promise<
     return await response.json();
   } catch (error) {
     toast("Error!", {
-      description: `Failed to fetch workflows, error: ${error}`,
+      description: (
+        <span style={{ color: "black" }}>
+          Failed to fetch workflows, error: {error as string}
+        </span>
+      ),
     });
     return null;
   }
-});
+}
 
 export function AppSidebar({
   action,
 }: {
-  action: (title: string) => MouseEventHandler<HTMLButtonElement>;
+  action: (title: string) => React.MouseEventHandler<HTMLButtonElement>;
 }) {
   const [user, setUser] = React.useState<
     { userId: string; email: string; username: string } | null | undefined
@@ -93,6 +93,7 @@ export function AppSidebar({
 
   const items = workflows?.map((workflow) => {
     return {
+      id: workflow.id,
       title: workflow.title,
       url: `/workflows/${workflow.id}`,
     };
@@ -117,18 +118,22 @@ export function AppSidebar({
         icon: BookOpen,
         items: [
           {
+            id: "",
             title: "Introduction",
             url: "#",
           },
           {
+            id: "",
             title: "Get Started",
             url: "#",
           },
           {
+            id: "",
             title: "Tutorials",
             url: "#",
           },
           {
+            id: "",
             title: "Changelog",
             url: "#",
           },
@@ -140,18 +145,22 @@ export function AppSidebar({
         icon: Settings2,
         items: [
           {
+            id: "",
             title: "General",
             url: "#",
           },
           {
+            id: "",
             title: "Team",
             url: "#",
           },
           {
+            id: "",
             title: "Billing",
             url: "#",
           },
           {
+            id: "",
             title: "Limits",
             url: "#",
           },

@@ -45,7 +45,7 @@ const DBReader = memo(
             <ContextMenuItem
               inset
               onClick={() => {
-                router.push(`/results/${id}`);
+                router.push(`/results/${id}?workflowId=${workflowId}`);
               }}
             >
               Show results

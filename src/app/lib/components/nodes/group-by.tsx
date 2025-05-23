@@ -37,9 +37,11 @@ const GroupBy = memo(
     isConnectable,
     id,
     data,
+    workflowId,
   }: {
     isConnectable: boolean;
     id: string;
+    workflowId: string;
     data: {
       groupByColumns: string[];
       aggregationMapping: Record<string, string>;
@@ -104,7 +106,7 @@ const GroupBy = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}`);
+                  router.push(`/results/${id}?workflowId=${workflowId}`);
                 }}
               >
                 Show results

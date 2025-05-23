@@ -165,6 +165,12 @@ export default function NodeGroup({ className }: { className?: string }) {
             }
           />
           <Node
+            className="dndnode StringCleaning"
+            title="String Cleaning"
+            src="/nodes/string_cleaner.png"
+            onDragStart={(event) => onDragStart(event, "string_cleaning")}
+          />
+          <Node
             className="dndnode GroupBy"
             title="Group By"
             src="/nodes/group_by.png"

@@ -28,9 +28,11 @@ const RowFilter = memo(
     isConnectable,
     id,
     data,
+    workflowId,
   }: {
     isConnectable: boolean;
     id: string;
+    workflowId: string;
     data: {
       column: string;
       operator: string;
@@ -80,7 +82,7 @@ const RowFilter = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}`);
+                  router.push(`/results/${id}?workflowId=${workflowId}`);
                 }}
               >
                 Show results

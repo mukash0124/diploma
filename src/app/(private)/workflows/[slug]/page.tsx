@@ -57,7 +57,6 @@ import DBConnector from "@/app/lib/components/nodes/db-connector";
 import DuplicateRemover from "@/app/lib/components/nodes/duplicate-remover";
 
 import { getSession } from "@/app/lib/session";
-import { cache } from "react";
 import { toast } from "sonner";
 import PostRequest from "@/app/lib/components/nodes/post-request";
 import ColumnRenamer from "@/app/lib/components/nodes/column-renamer";
@@ -78,6 +77,7 @@ import DBWriter from "@/app/lib/components/nodes/db-writer";
 import DBMerge from "@/app/lib/components/nodes/db-merge";
 import DBRowFilter from "@/app/lib/components/nodes/db-row-filter";
 import MissingDataProccessing from "@/app/lib/components/nodes/missing-data-processing";
+import StringCleaning from "@/app/lib/components/nodes/string-cleaning";
 
 const proOptions = { hideAttribution: true };
 
@@ -108,69 +108,21 @@ const nodeTypes = {
   db_merge: DBMerge,
   db_row_filter: DBRowFilter,
   missing_data_proccessing: MissingDataProccessing,
+  string_cleaning: StringCleaning,
 };
-
-const getWorkflow: (id: string | string[] | undefined) => Promise<
-  | {
-      id: string;
-      title: string;
-      structure: object;
-      ownerId: string;
-      createdAt: string;
-      updatedAt: string | null;
-    }
-  | null
-  | undefined
-> = cache(async (id) => {
-  if (!id) {
-    toast("Error!", {
-      description: "Invalid workflow ID.",
-    });
-    return null;
-  }
-  const session = await getSession();
-
-  try {
-    const response = await fetch(
-      `http://localhost:8080/api/workflows/single/${id}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "*/*",
-          Authorization: `Bearer ${session}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      toast("Error!", {
-        description: (
-          <span style={{ color: "black" }}>
-            Failed to fetch workflow, error: {response.statusText}
-          </span>
-        ),
-      });
-      return null;
-    }
-
-    return response.json();
-  } catch (error) {
-    toast("Error!", {
-      description: (
-        <span style={{ color: "black" }}>
-          Failed to fetch workflow, error: {error as string}
-        </span>
-      ),
-    });
-    return null;
-  }
-});
 
 let reactFlow: ReactFlowInstance;
 
 const getId = () => uuidv4();
 
-const DnDFlow = ({ id }: { id: string | undefined }) => {
+const DnDFlow = ({
+  workflow,
+}: {
+  workflow:
+    | { id: string; title: string; ownerId: string; structure: object }
+    | null
+    | undefined;
+}) => {
   const reactFlowWrapper = useRef(null);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -187,13 +139,9 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
   reactFlow = useReactFlow();
 
   React.useEffect(() => {
-    if (id) {
-      getWorkflow(id).then((data) => {
-        setNodes(data?.structure.nodes || []);
-        setEdges(data?.structure.edges || []);
-      });
-    }
-  }, [id, setEdges, setNodes]);
+    setNodes(workflow?.structure.nodes || []);
+    setEdges(workflow?.structure.edges || []);
+  }, [workflow, setEdges, setNodes]);
 
   const { screenToFlowPosition } = useReactFlow();
   const [type] = useDnD();
@@ -225,6 +173,7 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
 
       const newNode = {
         id: getId(),
+        workflowId: workflow?.id,
         data: {},
         type,
         position,
@@ -232,7 +181,7 @@ const DnDFlow = ({ id }: { id: string | undefined }) => {
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes, screenToFlowPosition]
+    [setNodes, screenToFlowPosition, workflow]
   );
 
   const onDragStart = (event, nodeType) => {
@@ -276,24 +225,76 @@ export default function WorkflowPage({
   params: Promise<{ slug: string }>;
 }) {
   const [slug, setSlug] = React.useState<string | undefined>(undefined);
-
+  const router = useRouter();
   React.useEffect(() => {
     params.then((resolvedParams) => {
       setSlug(resolvedParams.slug);
     });
   }, [params]);
 
+  const getWorkflow = useCallback(
+    async (
+      id: string | string[] | undefined
+    ): Promise<
+      | {
+          id: string;
+          title: string;
+          structure: object;
+          ownerId: string;
+          createdAt: string;
+          updatedAt: string | null;
+        }
+      | null
+      | undefined
+    > => {
+      if (!id) {
+        toast("Error!", {
+          description: "Invalid workflow ID.",
+        });
+        return null;
+      }
+      const session = await getSession();
+
+      try {
+        const response = await fetch(
+          `http://localhost:8080/api/workflows/single/${id}`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "*/*",
+              Authorization: `Bearer ${session}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          router.push("/workflows");
+          return null;
+        }
+        return response.json();
+      } catch {
+        router.push("/workflows");
+        return null;
+      }
+    },
+    [router]
+  );
+
   const [title, setTitle] = React.useState<string | undefined>("");
+  const [workflow, setWorkflow] = React.useState<
+    | { id: string; title: string; ownerId: string; structure: object }
+    | null
+    | undefined
+  >(null);
 
   React.useEffect(() => {
     if (slug) {
       getWorkflow(slug).then((data) => {
         setTitle(data?.title);
+        setWorkflow(data);
       });
     }
-  }, [slug]);
-
-  const router = useRouter();
+  }, [slug, getWorkflow]);
 
   async function addWorkflow(title: string) {
     const session = await getSession();
@@ -508,7 +509,7 @@ export default function WorkflowPage({
         <ReactFlowProvider>
           <NodeGroup />
           <DnDProvider>
-            <DnDFlow id={slug} />
+            <DnDFlow workflow={workflow} />
           </DnDProvider>
         </ReactFlowProvider>
       </SidebarInset>

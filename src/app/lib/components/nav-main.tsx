@@ -17,6 +17,12 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "@/components/ui/context-menu";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -28,6 +34,58 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { MouseEventHandler, useState } from "react";
+import { toast } from "sonner";
+import { getSession } from "../session";
+
+function deleteWorkflow(id: string | string[] | undefined) {
+  if (!id) {
+    toast("Error!", {
+      description: "Invalid workflow ID.",
+    });
+  }
+  (async () => {
+    const session = await getSession();
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/workflows/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${session}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        toast("Error!", {
+          description: (
+            <span style={{ color: "black" }}>
+              Failed to delete workflow, error: {response.statusText}
+            </span>
+          ),
+        });
+      } else {
+        toast("Success!", {
+          description: (
+            <span style={{ color: "black" }}>
+              Workflow was successfully deleted
+            </span>
+          ),
+        });
+      }
+    } catch (error) {
+      toast("Error!", {
+        description: (
+          <span style={{ color: "black" }}>
+            Failed to delete workflow, error: {error as string}
+          </span>
+        ),
+      });
+    }
+  })();
+}
 
 export function NavMain({
   items,
@@ -39,6 +97,7 @@ export function NavMain({
     icon: LucideIcon;
     isActive?: boolean;
     items?: {
+      id: string;
       title: string;
       url: string;
     }[];
@@ -70,13 +129,25 @@ export function NavMain({
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items?.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild>
-                          <a href={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </a>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
+                      <ContextMenu key={subItem.title}>
+                        <ContextMenuTrigger>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton key={subItem.title} asChild>
+                              <a href={subItem.url}>
+                                <span>{subItem.title}</span>
+                              </a>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="w-64">
+                          <ContextMenuItem
+                            inset
+                            onClick={() => deleteWorkflow(subItem.id)}
+                          >
+                            Delete Workflow
+                          </ContextMenuItem>
+                        </ContextMenuContent>
+                      </ContextMenu>
                     ))}
                     {item.title == "Workflows" && (
                       <SidebarMenuSubItem key="Add Workflow">

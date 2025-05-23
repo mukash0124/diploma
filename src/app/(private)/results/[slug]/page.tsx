@@ -13,7 +13,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 import React from "react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { AppSidebar } from "@/app/lib/components/app-sidebar";
 import {
@@ -36,54 +36,6 @@ import { toast } from "sonner";
 import { getUser } from "@/app/lib/dal";
 import { convertToCSV, downloadFile, convertToExcel } from "./utils";
 
-async function getResult(id: string | string[] | undefined): Promise<
-  | {
-      nodeId: string;
-      workflowId: string;
-      type: string;
-      result: object;
-      createdAt: string;
-      updatedAt: string | null;
-    }
-  | null
-  | undefined
-> {
-  if (!id) {
-    toast("Error!", {
-      description: "Invalid result ID.",
-    });
-    return null;
-  }
-  const session = await getSession();
-
-  try {
-    const response = await fetch(
-      `http://localhost:8080/api/results/single/${id}`,
-      {
-        method: "GET",
-        headers: {
-          Accept: "*/*",
-          Authorization: `Bearer ${session}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      toast("Error!", {
-        description: "Failed to fetch result, error: " + response.statusText,
-      });
-      return null;
-    }
-
-    return response.json();
-  } catch (error) {
-    toast("Error!", {
-      description: `Failed to fetch result, error: ${error}`,
-    });
-    return null;
-  }
-}
-
 export default function WorkflowPage({
   params,
 }: {
@@ -98,6 +50,56 @@ export default function WorkflowPage({
   }, [params]);
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  async function getResult(id: string | string[] | undefined): Promise<
+    | {
+        nodeId: string;
+        workflowId: string;
+        type: string;
+        result: object;
+        createdAt: string;
+        updatedAt: string | null;
+      }
+    | null
+    | undefined
+  > {
+    if (!id) {
+      toast("Error!", {
+        description: "Invalid result ID.",
+      });
+      return null;
+    }
+    const session = await getSession();
+
+    try {
+      const response = await fetch(
+        `http://localhost:8080/api/results/single/${id}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${session}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        toast("Error!", {
+          description: "Failed to fetch result, error: " + response.statusText,
+        });
+        router.push(`/workflows/${searchParams.get("workflowId")}`);
+        return null;
+      }
+
+      return response.json();
+    } catch (error) {
+      toast("Error!", {
+        description: `Failed to fetch result, error: ${error}`,
+      });
+      return null;
+    }
+  }
 
   async function addWorkflow(title: string) {
     const session = await getSession();

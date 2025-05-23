@@ -27,9 +27,11 @@ const ColumnFilter = memo(
     isConnectable,
     id,
     data,
+    workflowId,
   }: {
     isConnectable: boolean;
     id: string;
+    workflowId: string;
     data: {
       columnsToRemove: string[];
     };
@@ -92,7 +94,7 @@ const ColumnFilter = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}`);
+                  router.push(`/results/${id}?workflowId=${workflowId}`);
                 }}
               >
                 Show results

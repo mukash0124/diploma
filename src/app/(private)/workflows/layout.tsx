@@ -1,7 +1,8 @@
 "use client";
+
 import { Toaster } from "@/components/ui/sonner";
 
-export default function ResultsLayout({
+export default function WorkflowsLayout({
   children,
 }: {
   children: React.ReactNode;

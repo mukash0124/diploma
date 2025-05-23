@@ -36,9 +36,11 @@ const MissingDataProccessing = memo(
     isConnectable,
     id,
     data,
+    workflowId,
   }: {
     isConnectable: boolean;
     id: string;
+    workflowId: string;
     data: {
       actions: Record<string, string>;
       fixValues: Record<string, string>;
@@ -106,7 +108,7 @@ const MissingDataProccessing = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}`);
+                  router.push(`/results/${id}?workflowId=${workflowId}`);
                 }}
               >
                 Show results
