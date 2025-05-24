@@ -3,11 +3,11 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
-export async function createSession(token: string) {
+export async function createSession(key: string, token: string) {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
   const cookieStore = await cookies();
 
-  cookieStore.set("session", token, {
+  cookieStore.set(key, token, {
     httpOnly: true,
     secure: true,
     expires: expiresAt,

@@ -78,6 +78,7 @@ import DBMerge from "@/app/lib/components/nodes/db-merge";
 import DBRowFilter from "@/app/lib/components/nodes/db-row-filter";
 import MissingDataProccessing from "@/app/lib/components/nodes/missing-data-processing";
 import StringCleaning from "@/app/lib/components/nodes/string-cleaning";
+import TypeConverter from "@/app/lib/components/nodes/type-converter";
 
 const proOptions = { hideAttribution: true };
 
@@ -109,6 +110,7 @@ const nodeTypes = {
   db_row_filter: DBRowFilter,
   missing_data_proccessing: MissingDataProccessing,
   string_cleaning: StringCleaning,
+  type_converter: TypeConverter,
 };
 
 let reactFlow: ReactFlowInstance;

@@ -5,12 +5,12 @@ import { SignInForm } from "@/app/lib/components/auth/signin-form";
 import { useActionState } from "react";
 
 export default function SignInPage() {
-  const [, action, pending] = useActionState(signin, undefined);
+  const [result, action, pending] = useActionState(signin, undefined);
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
       <div className="w-full max-w-sm">
-        <SignInForm action={action} pending={pending} />
+        <SignInForm result={result} action={action} pending={pending} />
       </div>
     </div>
   );

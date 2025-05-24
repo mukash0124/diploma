@@ -12,10 +12,12 @@ import { Label } from "@/components/ui/label";
 interface SignInFormProps extends React.ComponentPropsWithoutRef<"div"> {
   action: (payload: FormData) => void;
   pending: boolean;
+  result: { message: string } | undefined;
 }
 
 export function SignInForm({
   action,
+  result,
   pending,
   className,
   ...props
@@ -54,15 +56,20 @@ export function SignInForm({
                 </div>
                 <Input id="password" type="password" name="password" required />
               </div>
+              {result && (
+                <div className="text-center text-sm text-red-500">
+                  {result?.message}
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={pending}>
                 Sign in
               </Button>
-            </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="/signup" className="underline underline-offset-4">
-                Sign up
-              </a>
+              <div className="text-center text-sm">
+                Don&apos;t have an account?{" "}
+                <a href="/signup" className="underline underline-offset-4">
+                  Sign up
+                </a>
+              </div>
             </div>
           </form>
         </CardContent>

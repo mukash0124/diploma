@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 
-export default function SignInLayout({
+export default function ConfirmLayout({
   children,
 }: {
   children: React.ReactNode;

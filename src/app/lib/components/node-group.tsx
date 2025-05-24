@@ -171,6 +171,12 @@ export default function NodeGroup({ className }: { className?: string }) {
             onDragStart={(event) => onDragStart(event, "string_cleaning")}
           />
           <Node
+            className="dndnode TypeConverter"
+            title="Type Converter"
+            src="/nodes/type_converter.png"
+            onDragStart={(event) => onDragStart(event, "type_converter")}
+          />
+          <Node
             className="dndnode GroupBy"
             title="Group By"
             src="/nodes/group_by.png"

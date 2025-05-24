@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   React.useEffect(() => {
-    router.push("/workflows/new");
+    router.push("/workflows");
   }, [router]);
 
   return <></>;
