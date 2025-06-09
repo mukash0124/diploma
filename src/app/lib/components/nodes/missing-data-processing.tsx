@@ -108,7 +108,7 @@ const MissingDataProccessing = memo(
               <ContextMenuItem
                 inset
                 onClick={() => {
-                  router.push(`/results/${id}?workflowId=${workflowId}`);
+                  router.push(`/results/${id}`);
                 }}
               >
                 Show results

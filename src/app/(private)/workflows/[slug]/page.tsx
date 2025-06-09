@@ -79,6 +79,7 @@ import DBRowFilter from "@/app/lib/components/nodes/db-row-filter";
 import MissingDataProccessing from "@/app/lib/components/nodes/missing-data-processing";
 import StringCleaning from "@/app/lib/components/nodes/string-cleaning";
 import TypeConverter from "@/app/lib/components/nodes/type-converter";
+import ExcelReader from "@/app/lib/components/nodes/excel-reader";
 
 const proOptions = { hideAttribution: true };
 
@@ -111,6 +112,7 @@ const nodeTypes = {
   missing_data_proccessing: MissingDataProccessing,
   string_cleaning: StringCleaning,
   type_converter: TypeConverter,
+  excel_reader: ExcelReader,
 };
 
 let reactFlow: ReactFlowInstance;
@@ -298,7 +300,7 @@ export default function WorkflowPage({
     }
   }, [slug, getWorkflow]);
 
-  async function addWorkflow(title: string) {
+  async function addWorkflow(title: string, structure: object) {
     const session = await getSession();
     if (!session) {
       return;
@@ -312,10 +314,7 @@ export default function WorkflowPage({
     const workflow = {
       title: title,
       ownerId: user.userId,
-      structure: {
-        nodes: [],
-        edges: [],
-      },
+      structure: structure,
     };
 
     try {
@@ -347,8 +346,7 @@ export default function WorkflowPage({
 
       router.push(`/workflows/${res.id}`);
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = String(error);
       toast("Error!", {
         description: <span style={{ color: "black" }}>{errorMessage}</span>,
       });
@@ -414,6 +412,11 @@ export default function WorkflowPage({
   };
 
   const handleSubmitWorkflow = () => {
+    toast("Loading", {
+      description: (
+        <span style={{ color: "black" }}>Workflow sent on execution.</span>
+      ),
+    });
     const reactFlowData = reactFlow.toObject();
 
     const nodes = reactFlowData.nodes.map((node) => {
@@ -438,16 +441,56 @@ export default function WorkflowPage({
       };
     });
 
-    const workflow = {
+    const workflowSubmit = {
       workflowId: slug,
       nodes: nodes,
     };
 
-    console.log("Workflow to be executed:", workflow);
+    console.log("Workflow to be executed:", workflowSubmit);
 
     (async () => {
       try {
         const session = await getSession();
+
+        const user = await getUser();
+
+        const workflowSave = {
+          ownerId: user?.userId,
+          title: title,
+          structure: reactFlowData,
+        };
+
+        await fetch(`http://localhost:8080/api/workflows/${slug}`, {
+          method: "PUT",
+          mode: "cors",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "*/*",
+            Authorization: `Bearer ${session}`,
+          },
+          body: JSON.stringify(workflowSave),
+        });
+
+        for (const node of workflowSubmit.nodes) {
+          if (node.type === "excel_reader") {
+            const request = new FormData();
+            request.append("file", node.fields.file || "");
+            request.append("nodeId", node.node_id);
+            request.append("workflowId", workflowSubmit.workflowId || "");
+            request.append("sheetName", node.fields.sheetName || "");
+            request.append("sheetPosition", 0);
+            console.log(request.values().toArray());
+            await fetch("http://localhost:8080/api/excel/execute-node", {
+              method: "POST",
+              mode: "cors",
+              headers: {
+                Accept: "*/*",
+                Authorization: `Bearer ${session}`,
+              },
+              body: request,
+            });
+          }
+        }
 
         const response = await fetch(
           "http://localhost:8080/api/workflow-executor/execute",
@@ -459,7 +502,7 @@ export default function WorkflowPage({
               Accept: "*/*",
               Authorization: `Bearer ${session}`,
             },
-            body: JSON.stringify(workflow),
+            body: JSON.stringify(workflowSubmit),
           }
         );
 
@@ -475,8 +518,7 @@ export default function WorkflowPage({
           });
         }
       } catch (error: unknown) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        const errorMessage = String(error);
         toast("Error!", {
           description: <span style={{ color: "black" }}>{errorMessage}</span>,
         });
@@ -486,7 +528,10 @@ export default function WorkflowPage({
 
   return (
     <SidebarProvider>
-      <AppSidebar action={(title: string) => () => addWorkflow(title)} />
+      <AppSidebar
+        action={(title: string, structure: object) => () =>
+          addWorkflow(title, structure)}
+      />
       <SidebarInset className="w-full max-w-full overflow-x-hidden">
         <header className="flex h-16 shrink-0 items-center gap-2 border-2 rounded-md w-full max-w-full overflow-hidden">
           <div className="flex items-center gap-2 px-4">

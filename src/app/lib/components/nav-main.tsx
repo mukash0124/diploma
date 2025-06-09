@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 import { MouseEventHandler, useState } from "react";
 import { toast } from "sonner";
 import { getSession } from "../session";
+import { exportFile } from "../utils";
 
 function deleteWorkflow(id: string | string[] | undefined) {
   if (!id) {
@@ -79,12 +80,16 @@ function deleteWorkflow(id: string | string[] | undefined) {
       toast("Error!", {
         description: (
           <span style={{ color: "black" }}>
-            Failed to delete workflow, error: {error as string}
+            Failed to delete workflow, error: {String(error)}
           </span>
         ),
       });
     }
   })();
+}
+
+function exportWorkflow(title: string, structure: object) {
+  exportFile(structure, title);
 }
 
 export function NavMain({
@@ -100,11 +105,16 @@ export function NavMain({
       id: string;
       title: string;
       url: string;
+      structure: object;
     }[];
   }[];
-  action: (title: string) => MouseEventHandler<HTMLButtonElement>;
+  action: (
+    title: string,
+    structure: object
+  ) => MouseEventHandler<HTMLButtonElement>;
 }) {
   const [title, setTitle] = useState<string>("Workflow");
+  const [structure, setStructure] = useState<object>({});
 
   return (
     <SidebarGroup>
@@ -146,6 +156,14 @@ export function NavMain({
                           >
                             Delete Workflow
                           </ContextMenuItem>
+                          <ContextMenuItem
+                            inset
+                            onClick={() =>
+                              exportWorkflow(subItem.title, subItem.structure)
+                            }
+                          >
+                            Export Workflow
+                          </ContextMenuItem>
                         </ContextMenuContent>
                       </ContextMenu>
                     ))}
@@ -178,9 +196,44 @@ export function NavMain({
                                   onChange={(evt) => setTitle(evt.target.value)}
                                 />
                               </div>
+                              <div className="grid grid-cols-6 items-center gap-4">
+                                <Label
+                                  htmlFor="structure_file"
+                                  className="text-right col-span-2"
+                                >
+                                  Structure File
+                                </Label>
+                                <Input
+                                  id="structure_file"
+                                  className="col-span-4"
+                                  type="file"
+                                  onChange={(evt) => {
+                                    const file = evt.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = (e) => {
+                                        try {
+                                          const structure = JSON.parse(
+                                            String(e.target?.result)
+                                          );
+                                          setStructure(structure);
+                                        } catch {
+                                          toast("Error!", {
+                                            description: "Invalid JSON file.",
+                                          });
+                                        }
+                                      };
+                                      reader.readAsText(file);
+                                    }
+                                  }}
+                                />
+                              </div>
                             </div>
                             <DialogFooter>
-                              <Button type="submit" onClick={action(title)}>
+                              <Button
+                                type="submit"
+                                onClick={action(title, structure)}
+                              >
                                 Create
                               </Button>
                             </DialogFooter>

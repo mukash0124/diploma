@@ -56,7 +56,7 @@ async function getWorkflows(): Promise<
     toast("Error!", {
       description: (
         <span style={{ color: "black" }}>
-          Failed to fetch workflows, error: {error as string}
+          Failed to fetch workflows, error: {String(error)}
         </span>
       ),
     });
@@ -67,7 +67,10 @@ async function getWorkflows(): Promise<
 export function AppSidebar({
   action,
 }: {
-  action: (title: string) => React.MouseEventHandler<HTMLButtonElement>;
+  action: (
+    title: string,
+    structure: object
+  ) => React.MouseEventHandler<HTMLButtonElement>;
 }) {
   const [user, setUser] = React.useState<
     { userId: string; email: string; username: string } | null | undefined
@@ -96,6 +99,7 @@ export function AppSidebar({
       id: workflow.id,
       title: workflow.title,
       url: `/workflows/${workflow.id}`,
+      structure: workflow.structure,
     };
   });
 
@@ -121,21 +125,25 @@ export function AppSidebar({
             id: "",
             title: "Introduction",
             url: "#",
+            structure: {},
           },
           {
             id: "",
             title: "Get Started",
             url: "#",
+            structure: {},
           },
           {
             id: "",
             title: "Tutorials",
             url: "#",
+            structure: {},
           },
           {
             id: "",
             title: "Changelog",
             url: "#",
+            structure: {},
           },
         ],
       },
@@ -148,21 +156,25 @@ export function AppSidebar({
             id: "",
             title: "General",
             url: "#",
+            structure: {},
           },
           {
             id: "",
             title: "Team",
             url: "#",
+            structure: {},
           },
           {
             id: "",
             title: "Billing",
             url: "#",
+            structure: {},
           },
           {
             id: "",
             title: "Limits",
             url: "#",
+            structure: {},
           },
         ],
       },

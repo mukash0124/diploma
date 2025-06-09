@@ -45,3 +45,16 @@ export function downloadFile(
     router.push("/workflows/" + workflowId);
   }, 300);
 }
+
+export function exportFile(json: object, workflowTitle: string) {
+  const blob = new Blob([JSON.stringify(json)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${workflowTitle}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

@@ -66,7 +66,7 @@ export default function WorkflowsPage() {
       toast("Error!", {
         description: (
           <span style={{ color: "black" }}>
-            Failed to fetch workflows, error: {error as string}
+            Failed to fetch workflows, error: {String(error)}
           </span>
         ),
       });
@@ -74,7 +74,7 @@ export default function WorkflowsPage() {
     }
   }
 
-  async function addWorkflow(title: string) {
+  async function addWorkflow(title: string, structure: object) {
     const session = await getSession();
     if (!session) {
       return;
@@ -88,10 +88,7 @@ export default function WorkflowsPage() {
     const workflow = {
       title: title,
       ownerId: user.userId,
-      structure: {
-        nodes: [],
-        edges: [],
-      },
+      structure: structure,
     };
 
     try {
@@ -114,13 +111,16 @@ export default function WorkflowsPage() {
           ),
         });
       } else {
-        toast("Success!", {});
+        toast("Success!", {
+          description: (
+            <span style={{ color: "black" }}>{response.statusText}</span>
+          ),
+        });
       }
 
       router.push(`/workflows/${res.id}`);
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = String(error);
       toast("Error!", {
         description: <span style={{ color: "black" }}>{errorMessage}</span>,
       });
@@ -128,6 +128,7 @@ export default function WorkflowsPage() {
   }
 
   const [title, setTitle] = useState<string>("Workflow");
+  const [structure, setStructure] = useState<object>({});
 
   const [workflows, setWorkflows] = React.useState<
     | [{ id: string; title: string; ownerId: string; structure: object }]
@@ -188,9 +189,44 @@ export default function WorkflowsPage() {
                           onChange={(evt) => setTitle(evt.target.value)}
                         />
                       </div>
+                      <div className="grid grid-cols-6 items-center gap-4">
+                        <Label
+                          htmlFor="structure_file"
+                          className="text-right col-span-2"
+                        >
+                          Structure File
+                        </Label>
+                        <Input
+                          id="structure_file"
+                          className="col-span-4"
+                          type="file"
+                          onChange={(evt) => {
+                            const file = evt.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                try {
+                                  const structure = JSON.parse(
+                                    String(e.target?.result)
+                                  );
+                                  setStructure(structure);
+                                } catch {
+                                  toast("Error!", {
+                                    description: "Invalid JSON file.",
+                                  });
+                                }
+                              };
+                              reader.readAsText(file);
+                            }
+                          }}
+                        />
+                      </div>
                     </div>
                     <DialogFooter>
-                      <Button type="submit" onClick={() => addWorkflow(title)}>
+                      <Button
+                        type="submit"
+                        onClick={() => addWorkflow(title, structure)}
+                      >
                         Create
                       </Button>
                     </DialogFooter>

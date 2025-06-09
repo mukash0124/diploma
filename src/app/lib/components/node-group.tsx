@@ -31,6 +31,12 @@ export default function NodeGroup({ className }: { className?: string }) {
             onDragStart={(event) => onDragStart(event, "csv_writer")}
           />
           <Node
+            className="dndnode ExcelReader"
+            title="Excel Reader"
+            src="/nodes/excel_reader.png"
+            onDragStart={(event) => onDragStart(event, "excel_reader")}
+          />
+          <Node
             className="dndnode ExcelWriter"
             title="Excel Writer"
             src="/nodes/excel_writer.png"

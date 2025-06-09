@@ -34,7 +34,7 @@ import {
 import { getSession } from "@/app/lib/session";
 import { toast } from "sonner";
 import { getUser } from "@/app/lib/dal";
-import { convertToCSV, downloadFile, convertToExcel } from "./utils";
+import { convertToCSV, downloadFile, convertToExcel } from "@/app/lib/utils";
 
 export default function WorkflowPage({
   params,
@@ -88,7 +88,6 @@ export default function WorkflowPage({
         toast("Error!", {
           description: "Failed to fetch result, error: " + response.statusText,
         });
-        router.push(`/workflows/${searchParams.get("workflowId")}`);
         return null;
       }
 
@@ -101,18 +100,21 @@ export default function WorkflowPage({
     }
   }
 
-  async function addWorkflow(title: string) {
+  async function addWorkflow(title: string, structure: object) {
     const session = await getSession();
+    if (!session) {
+      return;
+    }
 
     const user = await getUser();
+    if (!user) {
+      return;
+    }
 
     const workflow = {
       title: title,
-      ownerId: user?.userId,
-      structure: {
-        nodes: [],
-        edges: [],
-      },
+      ownerId: user.userId,
+      structure: structure,
     };
 
     try {
@@ -126,24 +128,25 @@ export default function WorkflowPage({
         body: JSON.stringify(workflow),
       });
 
-      const res = await response.text();
+      const res = await response.json();
 
       if (!response.ok) {
         toast("Error!", {
-          description: <span style={{ color: "black" }}>{res}</span>,
+          description: (
+            <span style={{ color: "black" }}>{response.statusText}</span>
+          ),
         });
       } else {
         toast("Success!", {
-          description: <span style={{ color: "black" }}>{res}</span>,
+          description: (
+            <span style={{ color: "black" }}>{response.statusText}</span>
+          ),
         });
       }
 
-      const data = await response.json();
-
-      router.push(`/workflows/${data.id}`);
+      router.push(`/workflows/${res.id}`);
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = String(error);
       toast("Error!", {
         description: <span style={{ color: "black" }}>{errorMessage}</span>,
       });
